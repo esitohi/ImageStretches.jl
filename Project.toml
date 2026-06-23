@@ -1,0 +1,11 @@
+name = "ImageStretches"
+uuid = "b267dd2d-61d0-4a2e-a8f9-324411204c16"
+version = "0.1.0"
+authors = ["Brandon Flores <bsflores@wisc.edu>"]
+
+[deps]
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
+
+[compat]
+julia = "1.10"
+SpecialFunctions = "2.8.0"
