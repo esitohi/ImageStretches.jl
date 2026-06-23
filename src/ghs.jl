@@ -1,5 +1,5 @@
 """
-    GeneralizedHyperbolicStretch{T<:Real}
+    GeneralizedHyperbolicStretch{T<:Real} <: ImageStretchFunction{T}
 
 Implements the generalized hyperbolic stretch function.
 Description of the function can be found
@@ -32,7 +32,8 @@ function GeneralizedHyperbolicStretch(
     local_intensity,
     symmetry_point,
     lp = false,
-    hp = true)
+    hp = true
+)
     args = promote(stretch_factor, local_intensity, symmetry_point, lp, hp)
     return GeneralizedHyperbolicStretch{eltype(args)}(args...)
 end
