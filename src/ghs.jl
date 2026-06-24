@@ -24,7 +24,7 @@ struct GeneralizedHyperbolicStretch{T<:Real, F<:AbstractFloat} <: ImageStretchFu
         (LP <= SP <= HP) || throw(
             ArgumentError("symmetry point must be between lp and hp")
         )
-        D = exp(stretch_factor) - 1
+        D = expm1(stretch_factor)
         return new(stretch_factor, D, b, SP, LP, HP)
     end
 end
@@ -37,19 +37,19 @@ function GeneralizedHyperbolicStretch(
     HP = 1
 )
     args = promote(stretch_factor, b, SP, LP, HP)
-    D = exp(stretch_factor) - 1
+    D = expm1(stretch_factor)
     return GeneralizedHyperbolicStretch{eltype(args), typeof(D)}(args...)
 end
 
 function (ghs::GeneralizedHyperbolicStretch)(x)
     if 0 <= x < ghs.LP
-        return NormTi(T1, x, ghs)
+        return _ghs_NormTi(_ghs_T1, x, ghs)
     elseif ghs.LP <= x < ghs.SP
-        return NormTi(T2, x, ghs)
+        return _ghs_NormTi(_ghs_T2, x, ghs)
     elseif ghs.SP <= x < ghs.HP
-        return NormTi(T3, x, ghs)
+        return _ghs_NormTi(_ghs_T3, x, ghs)
     elseif ghs.HP <= x <= 1
-        return NormTi(T4, x, ghs)
+        return _ghs_NormTi(_ghs_T4, x, ghs)
     else
         throw(ArgumentError("x must be in [0, 1]"))
     end
@@ -57,115 +57,113 @@ end
 
 
 
-function BaseLogarithmic(x, ghs::GeneralizedHyperbolicStretch)
-    return log(1 + ghs.D*x)
+function base_logarithmic(ghs::GeneralizedHyperbolicStretch, x)
+    return log1p(ghs.D*x)
 end
 
-function BaseLogarithmicDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function base_logarithmic_derivative(ghs::GeneralizedHyperbolicStretch, x)
     return ghs.D/(1 + ghs.D*x)
 end
 
 
-function BaseIntegral(x, ghs::GeneralizedHyperbolicStretch)
+function base_integral(ghs::GeneralizedHyperbolicStretch, x)
     return (1 - (1 - ghs.b*ghs.D*x)^((ghs.b + 1)/ghs.b))/(ghs.D*(ghs.b + 1))
 end
 
-function BaseIntegralDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function base_integral_derivative(ghs::GeneralizedHyperbolicStretch, x)
     return (1 - ghs.b*ghs.D*x)^(1/ghs.b)
 end
 
 
-function BaseExponential(x, ghs::GeneralizedHyperbolicStretch)
-    return 1 - exp(-ghs.D*x)
+function base_exponential(ghs::GeneralizedHyperbolicStretch, x)
+    return -expm1(-ghs.D*x)
 end
 
-function BaseExponentialDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function base_exponential_derivative(ghs::GeneralizedHyperbolicStretch, x)
     return ghs.D*exp(-ghs.D*x)
 end
 
 
-function BaseHarmonic(x, ghs::GeneralizedHyperbolicStretch)
+function base_harmonic(ghs::GeneralizedHyperbolicStretch, x)
     return 1 - (1 + ghs.D*x)^(-1)
 end
 
-function BaseHarmonicDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function base_harmonic_derivative(ghs::GeneralizedHyperbolicStretch, x)
     return ghs.D*(1 + ghs.D*x)^(-2)
     
 end
 
 
-function BaseHyperbolic(x, ghs::GeneralizedHyperbolicStretch)
+function base_hyperbolic(ghs::GeneralizedHyperbolicStretch, x)
     return 1 - (1 + ghs.b*ghs.D*x)^(-1/ghs.b)
 end
 
-function BaseHyperbolicDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function base_hyperbolic_derivative(ghs::GeneralizedHyperbolicStretch, x)
     return ghs.D*(1 + ghs.b*ghs.D*x)^(-(1 + ghs.b)/ghs.b)
 end
 
 
-function T(x, ghs::GeneralizedHyperbolicStretch)
+function _ghs_T(x, ghs::GeneralizedHyperbolicStretch)
     if ghs.b == -1
-        return BaseLogarithmic(x, ghs)
+        return base_logarithmic(ghs, x)
     elseif ghs.b < 0
-        return BaseIntegral(x, ghs)
+        return base_integral(ghs, x)
     elseif ghs.b == 0
-        return BaseExponential(x, ghs)
+        return base_exponential(ghs, x)
     elseif ghs.b < 1
-        return BaseHyperbolic(x, ghs)
+        return base_hyperbolic(ghs, x)
     elseif ghs.b == 1
-        return BaseHarmonic(x, ghs)
+        return base_harmonic(ghs, x)
     else
         throw(ArgumentError("b must be in [-1, 1]"))
     end
 end
 
-function TDerivative(x, ghs::GeneralizedHyperbolicStretch)
+function _ghs_T_derivative(ghs::GeneralizedHyperbolicStretch, x)
 
     if ghs.b == -1
-        return BaseLogarithmicDerivative(x, ghs)
+        return base_logarithmic_derivative(ghs, x)
     elseif ghs.b < 0
-        return BaseIntegralDerivative(x, ghs)
+        return base_integral_derivative(ghs, x)
     elseif ghs.b == 0
-        return BaseExponentialDerivative(x, ghs)
-    elseif ghs.b < 1
-        return BaseHyperbolicDerivative(x, ghs)
+        return base_exponential_derivative(ghs, x)
     elseif ghs.b == 1
-        return BaseHarmonicDerivative(x, ghs)
+        return base_harmonic_derivative(ghs, x)
     else
-        throw(ArgumentError("b must be in [-1, 1]"))
+        return base_hyperbolic_derivative(ghs, x)
     end
 end
 
 
-function T3(x, ghs::GeneralizedHyperbolicStretch)
-    return T(x - ghs.SP, ghs)
+function _ghs_T3(ghs::GeneralizedHyperbolicStretch, x)
+    return _ghs_T(x - ghs.SP, ghs)
 end
 
-function T3Derivative(x, ghs::GeneralizedHyperbolicStretch)
-    return TDerivative(x - ghs.SP, ghs)
+function _ghs_T3_derivative(ghs::GeneralizedHyperbolicStretch, x)
+    return _ghs_T_derivative(ghs, x - ghs.SP)
     
 end
 
 
-function T2(x, ghs::GeneralizedHyperbolicStretch)
-    return -T(ghs.SP - x, ghs)
+function _ghs_T2(ghs::GeneralizedHyperbolicStretch, x)
+    return -_ghs_T(ghs.SP - x, ghs)
 end
 
-function T2Derivative(x, ghs::GeneralizedHyperbolicStretch)
-    return TDerivative(ghs.SP - x, ghs)
-end
-
-
-function T1(x, ghs::GeneralizedHyperbolicStretch)
-    return T2Derivative(x, ghs) * (x - ghs.LP) + T2(ghs.LP, ghs)
+function _ghs_T2_derivative(ghs::GeneralizedHyperbolicStretch, x)
+    return _ghs_T_derivative(ghs, ghs.SP - x)
 end
 
 
-function T4(x, ghs::GeneralizedHyperbolicStretch)
-    return T3Derivative(ghs.HP, ghs) * (x - ghs.HP) + T3(ghs.HP, ghs)
+function _ghs_T1(ghs::GeneralizedHyperbolicStretch, x)
+    return _ghs_T2_derivative(ghs, x) * (x - ghs.LP) + _ghs_T2(ghs, ghs.LP)
 end
 
-function NormTi(Ti::Function, x, ghs::GeneralizedHyperbolicStretch)
-    return (Ti(x, ghs) - T1(0, ghs)) / (T4(1, ghs) - T1(0, ghs))
+
+function _ghs_T4(ghs::GeneralizedHyperbolicStretch, x)
+    return _ghs_T3_derivative(ghs, ghs.HP) * (x - ghs.HP) + _ghs_T3(ghs, ghs.HP)
+end
+
+function _ghs_NormTi(Ti::Function, x, ghs::GeneralizedHyperbolicStretch)
+    return (Ti(ghs, x) - _ghs_T1(ghs, 0)) / (_ghs_T4(ghs, 1) - _ghs_T1(ghs, 0))
 end
 
