@@ -56,14 +56,8 @@ function (ghs::GeneralizedHyperbolicStretch)(x)
 end
 
 
-
-function base_logarithmic(ghs::GeneralizedHyperbolicStretch, x)
-    return log1p(ghs.D*x)
-end
-
-function base_logarithmic_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return ghs.D/(1 + ghs.D*x)
-end
+base_logarithmic(ghs::GeneralizedHyperbolicStretch, x) = log1p(ghs.D*x)
+base_logarithmic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D/(1 + ghs.D*x)
 
 
 function base_integral(ghs::GeneralizedHyperbolicStretch, x)
@@ -75,23 +69,11 @@ function base_integral_derivative(ghs::GeneralizedHyperbolicStretch, x)
 end
 
 
-function base_exponential(ghs::GeneralizedHyperbolicStretch, x)
-    return -expm1(-ghs.D*x)
-end
+base_exponential(ghs::GeneralizedHyperbolicStretch, x) = -expm1(-ghs.D*x)
+base_exponential_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D*exp(-ghs.D*x)
 
-function base_exponential_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return ghs.D*exp(-ghs.D*x)
-end
-
-
-function base_harmonic(ghs::GeneralizedHyperbolicStretch, x)
-    return 1 - (1 + ghs.D*x)^(-1)
-end
-
-function base_harmonic_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return ghs.D*(1 + ghs.D*x)^(-2)
-    
-end
+base_harmonic(ghs::GeneralizedHyperbolicStretch, x) = 1 - (1 + ghs.D*x)^(-1)
+base_harmonic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D*(1 + ghs.D*x)^(-2)
 
 
 function base_hyperbolic(ghs::GeneralizedHyperbolicStretch, x)
@@ -120,7 +102,6 @@ function _ghs_T(x, ghs::GeneralizedHyperbolicStretch)
 end
 
 function _ghs_T_derivative(ghs::GeneralizedHyperbolicStretch, x)
-
     if ghs.b == -1
         return base_logarithmic_derivative(ghs, x)
     elseif ghs.b < 0
@@ -135,23 +116,11 @@ function _ghs_T_derivative(ghs::GeneralizedHyperbolicStretch, x)
 end
 
 
-function _ghs_T3(ghs::GeneralizedHyperbolicStretch, x)
-    return _ghs_T(x - ghs.SP, ghs)
-end
+_ghs_T3(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T(x - ghs.SP, ghs)
+_ghs_T3_derivative(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T_derivative(ghs, x - ghs.SP)
 
-function _ghs_T3_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return _ghs_T_derivative(ghs, x - ghs.SP)
-    
-end
-
-
-function _ghs_T2(ghs::GeneralizedHyperbolicStretch, x)
-    return -_ghs_T(ghs.SP - x, ghs)
-end
-
-function _ghs_T2_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return _ghs_T_derivative(ghs, ghs.SP - x)
-end
+_ghs_T2(ghs::GeneralizedHyperbolicStretch, x) = -_ghs_T(ghs.SP - x, ghs)
+_ghs_T2_derivative(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T_derivative(ghs, ghs.SP - x)
 
 
 function _ghs_T1(ghs::GeneralizedHyperbolicStretch, x)
