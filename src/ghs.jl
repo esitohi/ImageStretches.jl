@@ -33,8 +33,8 @@ function GeneralizedHyperbolicStretch(
     stretch_factor,
     b,
     SP,
-    LP = 0,
-    HP = 1
+    LP = false,
+    HP = true
 )
     args = promote(stretch_factor, b, SP, LP, HP)
     D = expm1(stretch_factor)
