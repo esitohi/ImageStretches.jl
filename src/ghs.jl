@@ -1,11 +1,11 @@
 """
-    GeneralizedHyperbolicStretch <: ImageStretchFunction{Float32}
+    GeneralizedHyperbolicStretch <: ImageStretchFunction
 
 Implements the generalized hyperbolic stretch function.
 Description of the function can be found
 [here](https://www.ghsastro.co.uk/doc/tools/GeneralizedHyperbolicStretch/GeneralizedHyperbolicStretch.html#__Transformation_equations__).
 """
-struct GeneralizedHyperbolicStretch <: ImageStretchFunction{Float32}
+struct GeneralizedHyperbolicStretch <: ImageStretchFunction
     stretch_factor::Float32
     D::Float32    # precomputed
     b::Float32
