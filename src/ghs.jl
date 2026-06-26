@@ -22,7 +22,7 @@ struct GeneralizedHyperbolicStretch{T<:Real, F<:AbstractFloat} <: ImageStretchFu
         (0 <= LP < HP) || throw(ArgumentError("LP must be between 0 and HP"))
         (LP < HP <= 1) || throw(ArgumentError("HP must be between LP and 1"))
         (LP <= SP <= HP) || throw(
-            ArgumentError("symmetry point must be between lp and hp")
+            ArgumentError("symmetry point must be between LP and HP")
         )
         D = expm1(stretch_factor)
         return new(stretch_factor, D, b, SP, LP, HP)
