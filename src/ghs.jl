@@ -43,13 +43,13 @@ end
 
 function (ghs::GeneralizedHyperbolicStretch)(x)
     if 0 <= x < ghs.LP
-        return _ghs_NormTi(_ghs_T1, x, ghs)
+        return _ghs_NormTi(_ghs_T1, ghs, x)
     elseif ghs.LP <= x < ghs.SP
-        return _ghs_NormTi(_ghs_T2, x, ghs)
+        return _ghs_NormTi(_ghs_T2, ghs, x)
     elseif ghs.SP <= x < ghs.HP
-        return _ghs_NormTi(_ghs_T3, x, ghs)
+        return _ghs_NormTi(_ghs_T3, ghs, x)
     elseif ghs.HP <= x <= 1
-        return _ghs_NormTi(_ghs_T4, x, ghs)
+        return _ghs_NormTi(_ghs_T4, ghs, x)
     else
         throw(ArgumentError("x must be in [0, 1]"))
     end
@@ -85,7 +85,7 @@ function base_hyperbolic_derivative(ghs::GeneralizedHyperbolicStretch, x)
 end
 
 
-function _ghs_T(x, ghs::GeneralizedHyperbolicStretch)
+function _ghs_T(ghs::GeneralizedHyperbolicStretch, x)
     if ghs.b == 0
         return base_exponential(ghs, x)
     elseif ghs.b == -1
@@ -114,10 +114,10 @@ function _ghs_T_derivative(ghs::GeneralizedHyperbolicStretch, x)
 end
 
 
-_ghs_T3(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T(x - ghs.SP, ghs)
+_ghs_T3(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T(ghs, x - ghs.SP)
 _ghs_T3_derivative(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T_derivative(ghs, x - ghs.SP)
 
-_ghs_T2(ghs::GeneralizedHyperbolicStretch, x) = -_ghs_T(ghs.SP - x, ghs)
+_ghs_T2(ghs::GeneralizedHyperbolicStretch, x) = -_ghs_T(ghs, ghs.SP - x)
 _ghs_T2_derivative(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T_derivative(ghs, ghs.SP - x)
 
 
@@ -130,7 +130,7 @@ function _ghs_T4(ghs::GeneralizedHyperbolicStretch, x)
     return _ghs_T3_derivative(ghs, ghs.HP) * (x - ghs.HP) + _ghs_T3(ghs, ghs.HP)
 end
 
-function _ghs_NormTi(Ti::Function, x, ghs::GeneralizedHyperbolicStretch)
+function _ghs_NormTi(Ti::Function, ghs::GeneralizedHyperbolicStretch, x)
     return (Ti(ghs, x) - _ghs_T1(ghs, 0)) / (_ghs_T4(ghs, 1) - _ghs_T1(ghs, 0))
 end
 
