@@ -1,44 +1,29 @@
 """
-    GeneralizedHyperbolicStretch{T<:Real} <: ImageStretchFunction{T}
+    GeneralizedHyperbolicStretch <: ImageStretchFunction{Float32}
 
 Implements the generalized hyperbolic stretch function.
 Description of the function can be found
 [here](https://www.ghsastro.co.uk/doc/tools/GeneralizedHyperbolicStretch/GeneralizedHyperbolicStretch.html#__Transformation_equations__).
 """
-struct GeneralizedHyperbolicStretch{T<:Real, F<:AbstractFloat} <: ImageStretchFunction{T}
-    stretch_factor::T
-    D::F
-    b::T
-    SP::T
-    LP::T
-    HP::T
-    function GeneralizedHyperbolicStretch{T, F}(
-        stretch_factor,
-        b,
-        SP,
-        LP,
-        HP
-    ) where {T, F}
+struct GeneralizedHyperbolicStretch <: ImageStretchFunction{Float32}
+    stretch_factor::Float32
+    D::Float32    # precomputed
+    b::Float32
+    SP::Float32
+    LP::Float32
+    HP::Float32
+    function GeneralizedHyperbolicStretch(stretch_factor, b, SP, LP, HP)
         (0 <= LP < HP) || throw(ArgumentError("LP must be between 0 and HP"))
         (LP < HP <= 1) || throw(ArgumentError("HP must be between LP and 1"))
         (LP <= SP <= HP) || throw(
             ArgumentError("symmetry point must be between LP and HP")
         )
-        D = expm1(stretch_factor)
-        return new(stretch_factor, D, b, SP, LP, HP)
+        return new(stretch_factor, expm1(stretch_factor), b, SP, LP, HP)
     end
 end
 
-function GeneralizedHyperbolicStretch(
-    stretch_factor,
-    b,
-    SP,
-    LP = false,
-    HP = true
-)
-    args = promote(stretch_factor, b, SP, LP, HP)
-    D = expm1(stretch_factor)
-    return GeneralizedHyperbolicStretch{eltype(args), typeof(D)}(args...)
+function GeneralizedHyperbolicStretch(stretch_factor, b, SP)
+    return GeneralizedHyperbolicStretch(stretch_factor, b, SP, 0, 1)
 end
 
 function (ghs::GeneralizedHyperbolicStretch)(x)
