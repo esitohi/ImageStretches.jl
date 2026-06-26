@@ -152,3 +152,9 @@ end
 function _ghs_T4(ghs::GeneralizedHyperbolicStretch, x)
     return _ghs_T3_derivative(ghs, ghs.HP) * (x - ghs.HP) + _ghs_T3(ghs, ghs.HP)
 end
+
+#---Show methods-----------------------------------------------------------------------------------#
+
+function Base.show(io::IO, ghs::GeneralizedHyperbolicStretch)
+    print(io, typeof(ghs), (ghs.stretch_factor, ghs.b, ghs.SP, ghs.LP, ghs.HP))
+end
