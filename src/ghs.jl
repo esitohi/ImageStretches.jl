@@ -43,9 +43,10 @@ struct GeneralizedHyperbolicStretch <: ImageStretchFunction
     LP::Float32
     HP::Float32
     # Precomputed constants
-    _D::Float32    # precomputed
-    _gT1::Float32   # precomputed
-    _gT4::Float32   # precomputed
+    _D::Float32     # from stretch factor
+    _gT1::Float32   # from LP
+    _gT4::Float32   # from HP
+    _denom::Float32
     function GeneralizedHyperbolicStretch(stretch_factor, b, SP, LP, HP)
         (0 <= LP < HP) || throw(ArgumentError("LP must be between 0 and HP"))
         (LP < HP <= 1) || throw(ArgumentError("HP must be between LP and 1"))
@@ -55,7 +56,8 @@ struct GeneralizedHyperbolicStretch <: ImageStretchFunction
         _D = expm1(stretch_factor)
         _gT1 = -_ghs_T_derivative(_D, b, SP - LP) * -LP - _ghs_T(_D, b, SP - LP)
         _gT4 = _ghs_T_derivative(_D, b, HP - SP) * (1 - HP) - _ghs_T(_D, b, HP - SP)
-        return new(stretch_factor, b, SP, LP, HP, _D, _gT1, _gT4)
+        _denom = inv(_gT4 - _gT1)
+        return new(stretch_factor, b, SP, LP, HP, _D, _gT1, _gT4, _denom)
     end
 end
 
@@ -75,7 +77,7 @@ function (ghs::GeneralizedHyperbolicStretch)(x)
     else
         throw(ArgumentError("x must be in [0, 1]"))
     end
-    return (y - ghs._gT1) / (ghs._gT4 - ghs._gT1)
+    return (y - ghs._gT1) * ghs._denom
 end
 
 
