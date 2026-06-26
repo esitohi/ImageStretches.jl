@@ -86,18 +86,16 @@ end
 
 
 function _ghs_T(x, ghs::GeneralizedHyperbolicStretch)
-    if ghs.b == -1
-        return base_logarithmic(ghs, x)
-    elseif ghs.b < 0
-        return base_integral(ghs, x)
-    elseif ghs.b == 0
+    if ghs.b == 0
         return base_exponential(ghs, x)
-    elseif ghs.b < 1
-        return base_hyperbolic(ghs, x)
+    elseif ghs.b == -1
+        return base_logarithmic(ghs, x)
     elseif ghs.b == 1
         return base_harmonic(ghs, x)
+    elseif ghs.b < 0
+        return base_integral(ghs, x)
     else
-        throw(ArgumentError("b must be in [-1, 1]"))
+        return base_hyperbolic(ghs, x)
     end
 end
 
