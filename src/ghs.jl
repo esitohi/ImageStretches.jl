@@ -147,7 +147,7 @@ _ghs_T2_derivative(ghs::GeneralizedHyperbolicStretch, x) = _ghs_T_derivative(ghs
 
 
 function _ghs_T1(ghs::GeneralizedHyperbolicStretch, x)
-    return _ghs_T2_derivative(ghs, x) * (x - ghs.LP) + _ghs_T2(ghs, ghs.LP)
+    return _ghs_T2_derivative(ghs, ghs.LP) * (x - ghs.LP) + _ghs_T2(ghs, ghs.LP)
 end
 
 
