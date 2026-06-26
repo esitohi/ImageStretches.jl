@@ -158,3 +158,30 @@ end
 function Base.show(io::IO, ghs::GeneralizedHyperbolicStretch)
     print(io, typeof(ghs), (ghs.stretch_factor, ghs.b, ghs.SP, ghs.LP, ghs.HP))
 end
+
+function Base.summary(io::IO, ghs::GeneralizedHyperbolicStretch)
+    if ghs.b == 0
+        str = "exponential"
+    elseif ghs.b == -1
+        str = "logarithmic"
+    elseif ghs.b == 1
+        str = "harmonic"
+    elseif ghs.b < 0
+        str = "integral"
+    else
+        str = "hyperbolic"
+    end
+    print(io, "Generalized hyperbolic stretch (", str, ")")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", ghs::GeneralizedHyperbolicStretch)
+    summary(io, ghs)
+    print(io, ":")
+    print(io, '\n', "Stretch factor:       ", ghs.stretch_factor)
+    print(io, '\n', "Local intensity:      ", ghs.b)
+    print(io, '\n', "Symmetry point:       ", ghs.SP)
+    if !iszero(ghs.LP) || !isone(ghs.HP)
+        print(io, '\n', "Shadow protection:    ", ghs.LP)
+        print(io, '\n', "Highlight protection: ", ghs.HP)
+    end
+end
