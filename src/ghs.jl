@@ -27,17 +27,20 @@ function GeneralizedHyperbolicStretch(stretch_factor, b, SP)
 end
 
 function (ghs::GeneralizedHyperbolicStretch)(x)
+    gT1 = _ghs_T1(ghs, 0)
+    gT4 = _ghs_T4(ghs, 1)
     if 0 <= x < ghs.LP
-        return _ghs_NormTi(_ghs_T1, ghs, x)
+        y = _ghs_T1(ghs, x)
     elseif ghs.LP <= x < ghs.SP
-        return _ghs_NormTi(_ghs_T2, ghs, x)
+        y = _ghs_T2(ghs, x)
     elseif ghs.SP <= x < ghs.HP
-        return _ghs_NormTi(_ghs_T3, ghs, x)
+        y = _ghs_T3(ghs, x)
     elseif ghs.HP <= x <= 1
-        return _ghs_NormTi(_ghs_T4, ghs, x)
+        y = _ghs_T4(ghs, x)
     else
         throw(ArgumentError("x must be in [0, 1]"))
     end
+    return (y - gT1) / (gT4 - gT1)
 end
 
 
@@ -114,8 +117,3 @@ end
 function _ghs_T4(ghs::GeneralizedHyperbolicStretch, x)
     return _ghs_T3_derivative(ghs, ghs.HP) * (x - ghs.HP) + _ghs_T3(ghs, ghs.HP)
 end
-
-function _ghs_NormTi(Ti::Function, ghs::GeneralizedHyperbolicStretch, x)
-    return (Ti(ghs, x) - _ghs_T1(ghs, 0)) / (_ghs_T4(ghs, 1) - _ghs_T1(ghs, 0))
-end
-
