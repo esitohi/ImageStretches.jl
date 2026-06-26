@@ -21,6 +21,13 @@ export ImageStretchFunction
 include("ghs.jl")
 export GeneralizedHyperbolicStretch
 
-stretch_image(stretch::ImageStretchFunction, image::AbstractArray) = stretch.(image)
+function stretch_image(stretch::ImageStretchFunction, image::AbstractArray)
+    result = similar(image)
+    # @inbounds makes this slightly faster than map(), broadcasting, or a comprehension
+    @inbounds for i in eachindex(image)
+        result[i] = stretch(image[i])
+    end
+    return result
+end
 
 end # module ImageStretches
