@@ -1,3 +1,34 @@
+#---Preliminary function defintions----------------------------------------------------------------#
+
+function _ghs_T(D, b, x)
+    if b == 0
+        return -expm1(D*x)                                  # exponential
+    elseif b == -1
+        return log1p(D*x)                                   # logarithmic
+    elseif b == 1
+        return 1 - (1 + D*x)^(-1)                           # harmonic
+    elseif b < 0
+        return (1 - (1 - b*D*x)^((b + 1)/b))/(D*(b + 1))    # integral
+    else
+        return 1 - (1 + b*D*x)^(-1/b)                       # hyperbolic
+    end
+end
+
+function _ghs_T_derivative(D, b, x)
+    if b == 0
+        return D*exp(-D*x)                                  # exponential
+    elseif b == -1
+        return D/(1 + D*x)                                  # logarithmic
+    elseif b == 1
+        return D*(1 + D*x)^(-2)                             # harmonic
+    elseif b < 0
+        return (1 - b*D*x)^(1/b)                            # integral
+    else
+        return D*(1 + b*D*x)^(-(1 + b)/b)                   # hyperbolic
+    end
+end
+
+#---GHS type---------------------------------------------------------------------------------------#
 """
     GeneralizedHyperbolicStretch <: ImageStretchFunction
 
@@ -7,18 +38,24 @@ Description of the function can be found
 """
 struct GeneralizedHyperbolicStretch <: ImageStretchFunction
     stretch_factor::Float32
-    D::Float32    # precomputed
     b::Float32
     SP::Float32
     LP::Float32
     HP::Float32
+    # Precomputed constants
+    _D::Float32    # precomputed
+    _gT1::Float32   # precomputed
+    _gT4::Float32   # precomputed
     function GeneralizedHyperbolicStretch(stretch_factor, b, SP, LP, HP)
         (0 <= LP < HP) || throw(ArgumentError("LP must be between 0 and HP"))
         (LP < HP <= 1) || throw(ArgumentError("HP must be between LP and 1"))
         (LP <= SP <= HP) || throw(
             ArgumentError("symmetry point must be between LP and HP")
         )
-        return new(stretch_factor, expm1(stretch_factor), b, SP, LP, HP)
+        _D = expm1(stretch_factor)
+        _gT1 = -_ghs_T_derivative(_D, b, SP - LP) * -LP - _ghs_T(_D, b, SP - LP)
+        _gT4 = _ghs_T_derivative(_D, b, HP - SP) * (1 - HP) - _ghs_T(_D, b, HP - SP)
+        return new(stretch_factor, b, SP, LP, HP, _D, _gT1, _gT4)
     end
 end
 
@@ -27,8 +64,6 @@ function GeneralizedHyperbolicStretch(stretch_factor, b, SP)
 end
 
 function (ghs::GeneralizedHyperbolicStretch)(x)
-    gT1 = _ghs_T1(ghs, 0)
-    gT4 = _ghs_T4(ghs, 1)
     if 0 <= x < ghs.LP
         y = _ghs_T1(ghs, x)
     elseif ghs.LP <= x < ghs.SP
@@ -40,36 +75,36 @@ function (ghs::GeneralizedHyperbolicStretch)(x)
     else
         throw(ArgumentError("x must be in [0, 1]"))
     end
-    return (y - gT1) / (gT4 - gT1)
+    return (y - ghs._gT1) / (ghs._gT4 - ghs._gT1)
 end
 
 
-base_logarithmic(ghs::GeneralizedHyperbolicStretch, x) = log1p(ghs.D*x)
-base_logarithmic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D/(1 + ghs.D*x)
+base_logarithmic(ghs::GeneralizedHyperbolicStretch, x) = log1p(ghs._D*x)
+base_logarithmic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs._D/(1 + ghs._D*x)
 
 
 function base_integral(ghs::GeneralizedHyperbolicStretch, x)
-    return (1 - (1 - ghs.b*ghs.D*x)^((ghs.b + 1)/ghs.b))/(ghs.D*(ghs.b + 1))
+    return (1 - (1 - ghs.b*ghs._D*x)^((ghs.b + 1)/ghs.b))/(ghs._D*(ghs.b + 1))
 end
 
 function base_integral_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return (1 - ghs.b*ghs.D*x)^(1/ghs.b)
+    return (1 - ghs.b*ghs._D*x)^(1/ghs.b)
 end
 
 
-base_exponential(ghs::GeneralizedHyperbolicStretch, x) = -expm1(-ghs.D*x)
-base_exponential_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D*exp(-ghs.D*x)
+base_exponential(ghs::GeneralizedHyperbolicStretch, x) = -expm1(-ghs._D*x)
+base_exponential_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs._D*exp(-ghs._D*x)
 
-base_harmonic(ghs::GeneralizedHyperbolicStretch, x) = 1 - (1 + ghs.D*x)^(-1)
-base_harmonic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs.D*(1 + ghs.D*x)^(-2)
+base_harmonic(ghs::GeneralizedHyperbolicStretch, x) = 1 - (1 + ghs._D*x)^(-1)
+base_harmonic_derivative(ghs::GeneralizedHyperbolicStretch, x) = ghs._D*(1 + ghs._D*x)^(-2)
 
 
 function base_hyperbolic(ghs::GeneralizedHyperbolicStretch, x)
-    return 1 - (1 + ghs.b*ghs.D*x)^(-1/ghs.b)
+    return 1 - (1 + ghs.b*ghs._D*x)^(-1/ghs.b)
 end
 
 function base_hyperbolic_derivative(ghs::GeneralizedHyperbolicStretch, x)
-    return ghs.D*(1 + ghs.b*ghs.D*x)^(-(1 + ghs.b)/ghs.b)
+    return ghs._D*(1 + ghs.b*ghs._D*x)^(-(1 + ghs.b)/ghs.b)
 end
 
 
